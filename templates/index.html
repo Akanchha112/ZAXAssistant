@@ -107,16 +107,13 @@
         $(document).ready(function () {
             $('#questionForm').on('submit', function (e) {
                 e.preventDefault();
-                var question = $('#question').val();
+                var question = $('#input').val(); // Correct selector
                 $('#responseData').hide();
                 $('.loader').show(); // Show loader
                 $.ajax({
                     type: 'POST',
                     url: '/',
-                    data:  { 
-                        question: input, // Send 'question' field if it's a question
-                        code: input  // Send 'code' field if it's code
-                    },
+                    data: { question: question }, // Correctly send the form data
                     success: function (response) {
                         $('.loader').hide(); // Hide loader on success
                         $('#responseTitle').show();
@@ -130,30 +127,31 @@
                 });
             });
         });
-
+    
         function formatResponse(response) {
             // Split the response into sections: text, code, text
             var sections = response.split('```');
             var formattedResponse = '';
-
-            // First text section (before first ``` and after last ```
+    
+            // First text section (before first ``` and after last ```)
             formattedResponse += '<p>' + sections[0].trim() + '</p>';
-
+    
             // Process code sections
             for (var i = 1; i < sections.length; i += 2) {
                 var code = sections[i];
                 var text = sections[i + 1] || '';
-
+    
                 // Format code section
                 formattedResponse += '<pre><code>' + code.trim() + '</code></pre>';
-
+    
                 // Format text section
                 formattedResponse += '<p>' + text.trim() + '</p>';
             }
-
+    
             return formattedResponse;
         }
     </script>
+    
 </body>
 
 </html>
