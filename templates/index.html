@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAX - Code Assistant</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #cfcfcf;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #2e2e2e;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            width: 80vw;
+        }
+
+        h1 {
+            color: #f4f4f4;
+        }
+
+        label,
+        p {
+            color: #cfcfcf;
+        }
+
+        input[type="text"] {
+            background-color: #3e3e3e;
+            color: #cfcfcf;
+        }
+
+        .btn-primary {
+            background-color: #4caf50;
+            border: none;
+        }
+
+        pre {
+            background-color: #3e3e3e;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            color: #cfcfcf;
+        }
+
+        #response {
+            text-align: left;
+            padding: 20px;
+        }
+
+        .loader {
+            display: none;
+            margin: 20px auto;
+            font-size: 20px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .loader span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 5px;
+            background-color: white;
+            border-radius: 50%;
+            animation: loaderAnimation 1s infinite;
+        }
+
+        @keyframes loaderAnimation {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>ZAX - Code Assistant</h1>
+        <form id="questionForm">
+            <div class="form-group">
+                <label for="input">Enter your question or code:</label>
+                <textarea class="form-control" id="input" name="input" rows="3" placeholder="Enter your question or code here:" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <div id="response">
+            <div class="loader"><span></span><span></span><span></span></div>
+            <h2 id="responseTitle" class="mt-4" style="display:none;">Response:</h2>
+            <div id="responseData" style="display:none;"></div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#questionForm').on('submit', function (e) {
+                e.preventDefault();
+                var question = $('#question').val();
+                $('#responseData').hide();
+                $('.loader').show(); // Show loader
+                $.ajax({
+                    type: 'POST',
+                    url: '/',
+                    data:  { 
+                        question: input, // Send 'question' field if it's a question
+                        code: input  // Send 'code' field if it's code
+                    },
+                    success: function (response) {
+                        $('.loader').hide(); // Hide loader on success
+                        $('#responseTitle').show();
+                        $('#responseData').html(formatResponse(response)).fadeIn(); // Show response data
+                    },
+                    error: function () {
+                        $('.loader').hide(); // Hide loader on error
+                        $('#responseTitle').show();
+                        $('#responseData').html('<p>Error fetching data. Please try again later.</p>').fadeIn(); // Show error message
+                    }
+                });
+            });
+        });
+
+        function formatResponse(response) {
+            // Split the response into sections: text, code, text
+            var sections = response.split('```');
+            var formattedResponse = '';
+
+            // First text section (before first ``` and after last ```
+            formattedResponse += '<p>' + sections[0].trim() + '</p>';
+
+            // Process code sections
+            for (var i = 1; i < sections.length; i += 2) {
+                var code = sections[i];
+                var text = sections[i + 1] || '';
+
+                // Format code section
+                formattedResponse += '<pre><code>' + code.trim() + '</code></pre>';
+
+                // Format text section
+                formattedResponse += '<p>' + text.trim() + '</p>';
+            }
+
+            return formattedResponse;
+        }
+    </script>
+</body>
+
+</html>
