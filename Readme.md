@@ -17,6 +17,6 @@ Zax Code Assistant provides the following core capabilities:
 ## Video
 
 
-<iframe width="560" height="315" src="https://vimeo.com/985837833?share=copy" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+Click [here](https://vimeo.com/985837833) to watch the project demo video.
 
 
