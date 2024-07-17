@@ -79,9 +79,17 @@
         }
 
         @keyframes loaderAnimation {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
+            0% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -92,7 +100,12 @@
         <form id="questionForm">
             <div class="form-group">
                 <label for="input">Enter your question or code:</label>
-                <textarea class="form-control" id="input" name="input" rows="3" placeholder="Enter your question or code here:" required></textarea>
+                <textarea class="form-control" id="input" name="question" rows="3"
+                    placeholder="Enter your question or code here:" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="code_to_document">Do you want to document the code?</label>
+                <input type="checkbox" id="code_to_document" name="code_to_document">
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
@@ -107,17 +120,19 @@
         $(document).ready(function () {
             $('#questionForm').on('submit', function (e) {
                 e.preventDefault();
-                var question = $('#input').val(); // Correct selector
+                var question = $('#input').val();
+                var code_to_document = $('#code_to_document').is(':checked'); // Convert to boolean
                 $('#responseData').hide();
                 $('.loader').show(); // Show loader
                 $.ajax({
                     type: 'POST',
                     url: '/',
-                    data: { question: question }, // Correctly send the form data
+                    data: JSON.stringify({ question: question, code_to_document: code_to_document }), // Send both question and code_to_document
+                    contentType: 'application/json', // Ensure content type is JSON
                     success: function (response) {
                         $('.loader').hide(); // Hide loader on success
                         $('#responseTitle').show();
-                        $('#responseData').html(formatResponse(response)).fadeIn(); // Show response data
+                        $('#responseData').html(formatResponse(response.response)).fadeIn(); // Show response data
                     },
                     error: function () {
                         $('.loader').hide(); // Hide loader on error
@@ -127,31 +142,62 @@
                 });
             });
         });
-    
+
         function formatResponse(response) {
             // Split the response into sections: text, code, text
             var sections = response.split('```');
             var formattedResponse = '';
-    
+
             // First text section (before first ``` and after last ```)
-            formattedResponse += '<p>' + sections[0].trim() + '</p>';
-    
+            formattedResponse += formatTextSection(sections[0].trim());
+
             // Process code sections
             for (var i = 1; i < sections.length; i += 2) {
                 var code = sections[i];
                 var text = sections[i + 1] || '';
-    
+
                 // Format code section
                 formattedResponse += '<pre><code>' + code.trim() + '</code></pre>';
-    
+
                 // Format text section
-                formattedResponse += '<p>' + text.trim() + '</p>';
+                formattedResponse += formatTextSection(text.trim());
             }
-    
+
             return formattedResponse;
         }
+
+        // Helper function to format text sections
+        function formatTextSection(text) {
+            var formattedText = '';
+            var lines = text.split('\n');
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+
+                // Check for bold text using double asterisks
+                line = line.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+                // Check for numbered lists
+                if (line.match(/^\d+\./)) {
+                    if (!formattedText.match(/<ol>/)) {
+                        formattedText += '<ol>';
+                    }
+                    formattedText += '<li>' + line.replace(/^\d+\./, '') + '</li>';
+                } else {
+                    if (formattedText.match(/<ol>/)) {
+                        formattedText += '</ol>';
+                    }
+                    formattedText += '<p>' + line + '</p>';
+                }
+            }
+
+            if (formattedText.match(/<ol>/)) {
+                formattedText += '</ol>';
+            }
+
+            return formattedText;
+        }
     </script>
-    
 </body>
 
 </html>
